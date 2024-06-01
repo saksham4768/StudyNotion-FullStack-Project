@@ -59,7 +59,7 @@ exports.IsStudent = async (req, res, next) => {
 }
 
 //IsAdmin
-exports.IsStudent = async (req, res, next) => {
+exports.IsAdmin = async (req, res, next) => {
     try{
 
         if(req.user.accountType !== 'Admin'){
@@ -79,7 +79,7 @@ exports.IsStudent = async (req, res, next) => {
 }
 
 //IsInstructor
-exports.IsStudent = async (req, res, next) => {
+exports.IsInstructor = async (req, res, next) => {
     try{
 
         if(req.user.accountType !== 'Instructor'){

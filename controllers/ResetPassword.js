@@ -13,7 +13,7 @@ exports.resetPasswordToken = async (req, res) =>{
         if(!ExistingUser){
             res.status(401).json({
                 success: false,
-                message: "User is not Exist, Firslty registered the user",
+                message: "User Not Found",
             })
         }
 
@@ -23,7 +23,7 @@ exports.resetPasswordToken = async (req, res) =>{
         const updatedDetails = await user.findOneAndUpdate({email: email},
             {
                 token: token,
-                resetPasswordExpires: Date.now + 5*60*1000
+                resetPasswordExpires: Date.now() + 5*60*1000
             },
             {new: true}
         );
@@ -89,7 +89,6 @@ exports.resetPassword = async (req, res) =>{
         await user.findOneAndUpdate(
             {token : token},
             {password: hashedPassword},
-            {confirmPassword: hashedPassword},
             {new:true},
         );
 

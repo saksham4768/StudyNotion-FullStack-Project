@@ -6,10 +6,9 @@ const profileDetails = require('../models/Profile');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-//sendOTP
-exports.sendOTP = async (req, res) =>{
+//sendOTP for Sign UP
+exports.sendOTP = async (req, res) =>{   
     try{
-
         //Fetch Email from Request Body
         const{email} = req.body;
 
@@ -24,32 +23,32 @@ exports.sendOTP = async (req, res) =>{
         }
 
         //Geneate the OTP from otp-Generator
-        let OTP = otpGenerator.generate(6,{
+        let otp = otpGenerator.generate(6,{
             upperCaseAlphabets: false,
             lowerCaseAlphabets: false,
             specialChars: false,
         });
 
-        console.log("Generate OTP is", OTP);
+        console.log("Generate OTP is", otp);
         //Check OTP is unique or not
-        let isUnique = await OTP.findOne({OTP});
+        let isUnique = await OTP.findOne({otp});
 
         //if not unique the regenrate oTP till oTP is not unique -> BAD Practice
         while(isUnique){
-            OTP = otpGenerator.generate(6,{
+            otp = otpGenerator.generate(6,{
                 upperCaseAlphabets: false,
                 lowerCaseAlphabets: false,
                 specialChars: false,
             });
 
-            isUnique = await OTP.findOne({OTP});
+            isUnique = await OTP.findOne({otp});
         }
         
         //create object of OTP and entry saved in DB 
-        let OTPPayload = {email, OTP};
+        let OTPPayload = {email, otp};
 
         let OTPBody = OTP.create(OTPPayload);
-
+        console.log(OTPBody);
         res.status(200).json({
             success: true,
             message: "OTP Generated Successfully",
@@ -104,7 +103,9 @@ exports.signUp = async (req, res) =>{
             })
         }
 
-        //Find most recent OTP
+        //Find most recent 
+        //-> -1 means descending order , 1 means ascendint order, createdAt: -1 means  sort by latest time in descending order
+        //-> limit (1) means its return only one document but here it is redundant bacause findOne only return one document
         const recentOTP = OTP.findOne({email}).sort({createdAt:-1}).limit(1);
         console.log("Recent OTP Is -> ", recentOTP);
 
@@ -202,7 +203,7 @@ exports.login = async (req, res) =>{
 
             //Create Cookie and send response
             const options = {
-                expires: new Date(Date.now() * 3*24*60*60*1000),
+                expires: new Date(Date.now() + 3*24*60*60*1000),
                 httpOnly: true,
             }
             res.cookie("token", token, options).status(200).json({
@@ -228,5 +229,62 @@ exports.login = async (req, res) =>{
 }
 //Change Password
 exports.changePassword = async (req, res) =>{
+    try{
+        //Fetch Email for Change password
+        const email = req.body.email;
 
+        //Check this is present in DB or not
+        const exisitngUser = await user.findOne({email});
+        if(!exisitngUser){
+            return res.status(404).json({
+                success: 'false',
+                message: 'User Not Found',
+            })
+        }
+
+        //when user present then next page show in which field is old password , newpassword, confirm new password
+        const {oldPassword, newPassword, confirmNewPassword} = req.body;
+
+        if(!oldPassword || !newPassword || !confirmNewPassword){
+            return res.status(401).json({
+                success: 'false',
+                message: 'Data Missing',
+            })
+        }
+
+        //Check old password is match with respective to user emailed
+        const MatchedPassword = await bcrypt.compare(oldPassword, exisitngUser.password);
+        if(!MatchedPassword){
+            return res.status(401).json({
+                success: 'false',
+                message: 'Password is Not Matched',
+            })
+        }
+
+        //if old password is matched with existing password then check if new password and confirm password matched or not
+        if(newPassword !== confirmNewPassword){
+            return res.status(401).json({
+                success: 'false',
+                message: 'New Password and Confirm New Password Should be the same',
+            })
+        }
+        
+        //bcrypt the password and update in DB;
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        //Save in DB
+        const response = user.updateOne({email : email}, {$set: {password : hashedPassword}},{new: true});
+        return res.status(200).json({
+            success: 'true',
+            message: 'password updated successfully',
+            response: 'response'
+        })
+    }
+    catch(err){
+        return res.status(500).json({
+            success: 'false',
+            message: 'Something went wrong, while updating the password',
+            error:err.message
+        })
+    }
 }
