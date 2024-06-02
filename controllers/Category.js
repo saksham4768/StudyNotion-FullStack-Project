@@ -3,19 +3,20 @@ require('dotenv').config();
 
 exports.createCategory = async (req, res) =>{
     try{
-
+        console.log("Inside Create Category");
         //Fetch Data
-        const {name, desc} = req.body;
+        const {name, description} = req.body;
 
+        console.log("Name and Description", name, description);
         //validation 
-        if(!name || !desc){
+        if(!name || !description){
             return res.status(400).json({
                 success: false,
                 message: 'All Data Should be Mandatory',
             })
         }
         //Check Category is present alredy or not
-        const ExisitngCategory = await Category.findOne({name});
+        const ExisitngCategory = await Category.findOne({name : name});
 
         if(ExisitngCategory){
             return res.status(400).json({
@@ -26,7 +27,7 @@ exports.createCategory = async (req, res) =>{
         //Create Entry in DB
         const CategoryDetails = await Category.create({
             name: name,
-            description: desc,
+            description: description,
         },{new: true});
 
         console.log("Category Details is ->", CategoryDetails);

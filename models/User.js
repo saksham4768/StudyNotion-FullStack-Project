@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    lastname:{
+    lastName:{
         type: String,
         required: true,
         trim: true,
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
     },
     additionalDetails:{
         type: mongoose.Schema.Types.ObjectId,
-        ref:"Profile",
+        ref:"profile",
         required: true,
     },
     token:{
@@ -54,4 +54,4 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("User", userSchema);

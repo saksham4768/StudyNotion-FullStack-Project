@@ -34,7 +34,7 @@ const courseSchema = new mongoose.Schema({
         type:Number,
     },
     thumbNail:{
-        type: Number,
+        type: String,
     },
     category:{
         type: mongoose.Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 // Import the required modules
 const express = require("express");
 const { Authentication, IsStudent } = require("../middlewares/auth");
-const { deleteAccount, updateProfileDetails, getAllUserDetails, getEnrolledCourses, updateDisplayPicture } = require("../controllers/Profile");
+const { deleteAccount, updateProfileDetails, getUserDetails, getEnrolledCourses, updateDisplayPicture } = require("../controllers/Profile");
 const router = express.Router();
 
 
@@ -18,13 +18,13 @@ router.delete("/deleteProfile", Authentication, IsStudent, deleteAccount);
 router.put("/updateProfile", Authentication, IsStudent, updateProfileDetails);
 
 //get All User Details
-router.get("/getAllUserDetails", getAllUserDetails);
+router.get("/getUserDetails",Authentication, getUserDetails);
 
 // Get Enrolled Courses
 router.get("/getEnrolledCourses", Authentication, getEnrolledCourses);
 
 //Update Prfile Display Picture
-router.put("/updateDisplayPicture", updateDisplayPicture);
+router.put("/updateDisplayPicture", Authentication, updateDisplayPicture);
 
 // Export the router for use in the main application
 module.exports = router

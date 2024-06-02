@@ -1,5 +1,6 @@
 const profile = require('../models/Profile');
 const user = require('../models/User');
+const { uploadFileToCloudinary } = require('../utils/FileUploader');
 require('dotenv').config();
 
 exports.updateProfileDetails = async (req, res) =>{
@@ -8,9 +9,10 @@ exports.updateProfileDetails = async (req, res) =>{
         //Fetch Data
         const{dateOfBirth="", about="",gender, contactNumber=""}= req.body;
 
+        console.log("About is ->", about);
         //getUser iD
         const userID = req.user.id;
-
+        console.log("user is ->", userID);
         //Validation
         if(!gender || !contactNumber){
             return res.status(400).json({
@@ -21,9 +23,12 @@ exports.updateProfileDetails = async (req, res) =>{
 
         //find Profile
         const userDetails = await user.findById(userID);
-        const profile = userDetails.additionalDetails;
-        const profileDetails  = await profile.findById(profile);
+        const Profile = userDetails.additionalDetails;
+        console.log("profile ID is ->",Profile)
+        const profileDetails  = await profile.findById(Profile);
 
+        console.log("Profile Details ->", about);
+        console.log("About is ->", about);
         //updateProfile
         profileDetails.about = about;
         profileDetails.dateOfBirth = dateOfBirth;
@@ -33,6 +38,7 @@ exports.updateProfileDetails = async (req, res) =>{
 
         return res.status(200).json({
             success: true,
+            profileDetails,
             message: "Profile Updated Successfully"
         }) 
 
@@ -81,13 +87,15 @@ exports.deleteAccount = async (req, res) =>{
     }
 }
 
-exports.getAllUserDetails = async (req, res) =>{
+exports.getUserDetails = async (req, res) =>{
     try{
-
+        console.log("Inside getUserDetails")
         //Get Id
         const userID = req.user.id;
-        const UserDetails = user.findById(userID).populate('additionalDetails').exec();
+        console.log("User ID for to get All details", userID);
+        const UserDetails = await user.findById(userID).populate('additionalDetails').exec();
 
+        console.log("User Details", UserDetails);
         return res.status(200).json({
             success: true,
             message:"Fetch Successfully User Details",
@@ -104,22 +112,24 @@ exports.getAllUserDetails = async (req, res) =>{
 }
 
 exports.updateDisplayPicture = async (req, res) => {
+  console.log("In Update Display Picture");
     try {
-      const displayPicture = req.files.displayPicture
-      const userId = req.user.id
-      const image = await uploadImageToCloudinary(
+      const displayPicture = req.files.displayPicture;
+      console.log("In Update Display Picture -> ", displayPicture);
+      const userId = req.user.id;
+      const image = await uploadFileToCloudinary(
         displayPicture,
         process.env.FOLDER_NAME,
         1000,
         1000
       )
-      console.log(image)
-      const updatedProfile = await User.findByIdAndUpdate(
+      console.log(image);
+      const updatedProfile = await user.findByIdAndUpdate(
         { _id: userId },
         { image: image.secure_url },
         { new: true }
       )
-      res.send({
+      return res.send({
         success: true,
         message: `Image Updated successfully`,
         data: updatedProfile,

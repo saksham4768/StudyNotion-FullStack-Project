@@ -1,18 +1,19 @@
-const user = require('../models/Course');
+const user = require('../models/User');
 const Category = require('../models/Category');
 const course = require('../models/Course');
-const imageUpload = require('../utils/FileUploader');
+const { uploadFileToCloudinary } = require('../utils/FileUploader');
 require('dotenv').config();
 
 exports.createCourse = async(req, res) =>{
     try{
-
+        console.log("Inside the create Course")
         //Fetch Data
         const{courseName, courseDescription, whatWillYouLearn, price, category} = req.body;
 
         //Fetch File
-        const {thumbNail} = req.files.thumbNailImage;
+        const thumbNail = req.files.thumbNailImage;
 
+        console.log(courseName , "--", courseDescription, "--", whatWillYouLearn, "--", price, "--", category, "--", thumbNail);
         //Validation
         if(!courseName || !courseDescription || !whatWillYouLearn || !price || !category || !thumbNail){
             return res.status(400).json({
@@ -23,7 +24,8 @@ exports.createCourse = async(req, res) =>{
 
         //fetch details of instructor becz for each course instructor data required
         const userId = req.user.id;
-        const instructorDetails = await user.findById({userId});
+        console.log("user ID is ->", userId);
+        const instructorDetails = await user.findById(userId);
         console.log('Instructor Details ->', instructorDetails);
 
         if(!instructorDetails){
@@ -34,7 +36,7 @@ exports.createCourse = async(req, res) =>{
         }
         
         //check given category is valid or not
-        const categoryDetails = await Category.findById({category});
+        const categoryDetails = await Category.findById(category);
 
         if(!categoryDetails){
             return res.status(404).json({
@@ -44,25 +46,27 @@ exports.createCourse = async(req, res) =>{
         }
 
         //upload Image to Cloudinary
-        const Image = await imageUpload(thumbNail, process.env.FOLDER_NAME);
+        const Image = await uploadFileToCloudinary(thumbNail, process.env.FOLDER_NAME);
 
+        console.log("ThumbNail Image Response is -> ", Image);
         //Create an Entry for new course
         const newCourse = await course.create({
-            courseName,
-            courseDescription,
+            courseName:courseName,
+            courseDescription:courseDescription,
             instructor: instructorDetails._id,
             whatWillYouLearn:whatWillYouLearn,
-            price,
+            price:price,
             category:categoryDetails._id,
             thumbNail: Image.secure_url
-        },{new:true});
+        });
 
+        console.log("Course is Added is->", newCourse);
         //Add the new course in user schema
         const updatedUser = await user.findByIdAndUpdate(
             {_id: instructorDetails._id},
             {
                 $push: {
-                    course: newCourse._id
+                    courses: newCourse._id
                 }
             },
             {new:true}
@@ -127,11 +131,13 @@ exports.getAllCourses = async (req, res) =>{
 exports.getCourseDetails = async (req,res) =>{
     try{
 
+        console.log("Inside the getCourse Details");
         //get ID
         const {courseID} = req.body;
 
+        console.log("Course ID is->", courseID);
         //get Course Details
-        const courseDetails = course.findById(courseID).populate({
+        const courseDetails = await course.findById({_id: courseID}).populate({
                                                 path:"instructor",
                                                 populate:{
                                                     path:"additionalDetails"
@@ -141,13 +147,12 @@ exports.getCourseDetails = async (req,res) =>{
                                                 populate:{
                                                     path:"subSection"
                                                 }
-                                            }).populate("category")
-                                            .populate("ratingAndReview").exec();
+                                            }).populate("category").exec();
 
+        console.log("Course Details is ->", courseDetails);
         if(!courseDetails){
             return res.status(404).json({
                 success: false,
-                error: err.message,
                 message: 'Course Details could not found'
             })
         }

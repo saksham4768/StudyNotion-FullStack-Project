@@ -1,15 +1,16 @@
 const section = require('../models/Section');
-const course = require('../models/Section');
+const course = require('../models/Course');
 require('dotenv').config();
 
 exports.createSection = async(req, res) =>{
     try{
 
+        console.log("Inside Create Section");
         //data fetch
         const{sectionName, courseId} = req.body;
-
+        console.log("Section Name -> ", sectionName, " Course ID is ->", courseId);
         //validation
-        if(!sectionName){
+        if(!sectionName || !courseId){
             return res.status(400).json({
                 success: false,
                 message:"Fields are manadatory",
@@ -17,8 +18,8 @@ exports.createSection = async(req, res) =>{
         };
 
         //create section
-        const newSection = await section.create({sectionName});
-
+        const newSection = await section.create({sectionName:sectionName});
+        console.log("New Section is->", newSection);
         //update course
         const updatedCourse = await course.findByIdAndUpdate(
             {_id:courseId},

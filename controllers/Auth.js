@@ -52,7 +52,7 @@ exports.sendOTP = async (req, res) =>{
         res.status(200).json({
             success: true,
             message: "OTP Generated Successfully",
-            OTP,
+            otp,
         })
     }
     catch(error){
@@ -74,18 +74,16 @@ exports.signUp = async (req, res) =>{
             password,
             confirmpassword,
             accountType,
-            contactNumber,
             otp,
         } = req.body;
 
         //Validate the data
-        if(!firstName || !lastName || !email || !password || !confirmpassword || !contactNumber){
+        if(!firstName || !lastName || !email || !password || !confirmpassword){
             return res.status(403).json({
                 success: false,
                 message: "All field is Required",
             })
         }
-
         //Check user from this email already exit or not
         const ExistingUser = await user.findOne({email});
 
@@ -102,13 +100,11 @@ exports.signUp = async (req, res) =>{
                 message: "Password and Confirm Password Should be the same",
             })
         }
-
         //Find most recent 
         //-> -1 means descending order , 1 means ascendint order, createdAt: -1 means  sort by latest time in descending order
         //-> limit (1) means its return only one document but here it is redundant bacause findOne only return one document
-        const recentOTP = OTP.findOne({email}).sort({createdAt:-1}).limit(1);
+        const recentOTP = await OTP.findOne({email}).sort({createdAt:-1}).limit(1);
         console.log("Recent OTP Is -> ", recentOTP);
-
         if(recentOTP.length === 0){
             //OTP Not Found
             return res.status(400).json({
@@ -116,14 +112,13 @@ exports.signUp = async (req, res) =>{
                 message: "OTP Not Found",
             });
         }
-        else if(otp !== recentOTP){
+        else if(otp !== recentOTP.otp){
             //Invalid OTP
             return res.status(400).json({
                 success: false,
                 message: "OTP is INVALID",
             });
         }
-
         //Hashed the PASSWORD
         let hashedPassword = await bcrypt.hash(password, 10);
         //Create Entry in DB and save data in DB'
@@ -133,23 +128,21 @@ exports.signUp = async (req, res) =>{
             contactNumber: null,
             dateOfBirth: null
         });
-
         let signUPData = {firstName,
             lastName,
             email,
             password:hashedPassword,
-            confirmpassword:hashedPassword,
             accountType,
-            contactNumber,
             additionalDetails:(AdditionalDetails)._id,
             image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
         };
 
-        const userData = user.create({signUPData});
+        const userData = await user.create(signUPData);
         
         console.log("User Data is -> ", userData);
         return res.status(200).json({
             success: true,
+            userData,
             message: "User Signed Up Successfully, Enjoy!",
         });
     }
@@ -184,7 +177,7 @@ exports.login = async (req, res) =>{
                 message: "User is not Exist, Firslty registered the user",
             })
         }
-
+        
         //Generate JWT after matching the password
         let DBPassword = ExistingUser.password;
         let isMatched = await bcrypt.compare(password, DBPassword);
@@ -195,21 +188,21 @@ exports.login = async (req, res) =>{
                 id: ExistingUser._id,
                 accountType: ExistingUser.accountType,
             }
-            const token = jwt.sign(payload, JWT_SECRET, {
+            const token = jwt.sign(payload, process.env.JWT_SECRET, {
                 expiresIn: "2h",
             });
             ExistingUser.token = token;
             ExistingUser.password = undefined;
-
+            console.log("token while login the user -> ", token);
             //Create Cookie and send response
             const options = {
                 expires: new Date(Date.now() + 3*24*60*60*1000),
                 httpOnly: true,
             }
-            res.cookie("token", token, options).status(200).json({
+            return res.cookie("token", token, options).status(200).json({
                 success: true,
                 token,
-                user,
+                ExistingUser,
                 message:"Logged in Successfully",
             })
         }
@@ -224,6 +217,7 @@ exports.login = async (req, res) =>{
         return res.status(500).json({
             success: false,
             message: "User is not logged In kindly see the login details",
+            err: err.message
         });
     }
 }

@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const sectionSchema = new mongoose.Schema({
     sectionName:{
-        title: String,
+        type: String,
+        required: true,
     },
     subSection:[
         {
