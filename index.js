@@ -47,12 +47,12 @@ app.use("/api/v1/payment", paymentRoutes);
 
 
 //Default Routes
-app.use("/" , (req, res) => {
-    return res.json({
-        success: true,
-        message: "Your Server is Up and running...."
-    })
-});
+// app.use("/" , (req, res) => {
+//     return res.json({
+//         success: true,
+//         message: "Your Server is Up and running...."
+//     })
+// });
 
 //Activate Server
 app.listen(PORT, () => {

@@ -7,6 +7,7 @@ const router = express.Router();
 const { login, signUp, sendOTP, changePassword } = require("../controllers/Auth");
 const { resetPasswordToken, resetPassword } = require("../controllers/ResetPassword");
 
+
 // Routes for Login, Signup, and Authentication
 
 // ********************************************************************************************************

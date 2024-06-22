@@ -49,7 +49,7 @@ exports.getallCategory = async (req, res) =>{
     try{
 
         //Find all Category, but make sure in Category name and description present
-        const allCategory = Category.find({},{name:true, description: true});
+        const allCategory = await Category.find({},{name:true, description: true});
 
         return res.status(200).json({
             success: true,

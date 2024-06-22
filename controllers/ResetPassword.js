@@ -4,9 +4,10 @@ const bcrypt = require('bcrypt');
 //ResetPasswordToken
 exports.resetPasswordToken = async (req, res) =>{
     try{
+        console.log("Inside Backend Code");
         //get Email from request body
         const email = req.body.email;
-
+        console.log(email);
         //Check user is exist or not
         const ExistingUser = await user.findOne({email}).populate("additionalDetails");
 

@@ -5,12 +5,14 @@ require('dotenv').config();
 
 exports.createSubSection = async(req, res)=>{
     try{
+
+        console.log("Inside Create Sub Section");
         //Data fetch
         const{title, timeDuration, description, sectionId} = req.body;
-
+        console.log(title , "--", timeDuration, '--', description, '--', sectionId);
         //File fetch
-        const {videoFile} = req.files.VideoFile;
-
+        const videoFile = req.files.VideoFile;
+        console.log(videoFile);
         //Validation
         if(!title || !timeDuration || !description || !sectionId || !videoFile){
             return res.status(400).json({
@@ -20,7 +22,7 @@ exports.createSubSection = async(req, res)=>{
         };
 
         //upload file to cloudinary
-        const videoUploadToCloudinary = uploadFileToCloudinary.uploader.upload(videoFile.tempFilePath, process.env.FOLDER_NAME);
+        const videoUploadToCloudinary = uploadFileToCloudinary(videoFile, process.env.FOLDER_NAME);
 
         //create a new subsection
         const newSubSection = await subsection.create(
@@ -33,12 +35,11 @@ exports.createSubSection = async(req, res)=>{
         );
 
         //Update the subsection in section
-        const updatedSection = await section.findByIdAndUpdate(sectionId,
-            {subSection: newSubSection._id},
-            {new:true}
-        ).populate({
-            path:"subSection"
-        });
+        const updatedSection = await section.findByIdAndUpdate(
+            { _id: sectionId },
+            { $push: { subSection: newSubSection._id } },
+            { new: true }
+          ).populate("subSection");
 
         return res.status(200).json({
             success: true,

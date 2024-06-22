@@ -16,7 +16,7 @@ exports.sendOTP = async (req, res) =>{
         const ExistingUser = await user.findOne({email});
 
         if(ExistingUser){
-            res.status(401).json({
+            return res.status(401).json({
                 success: false,
                 message: "User is Already Exist",
             })
@@ -47,9 +47,9 @@ exports.sendOTP = async (req, res) =>{
         //create object of OTP and entry saved in DB 
         let OTPPayload = {email, otp};
 
-        let OTPBody = OTP.create(OTPPayload);
+        let OTPBody = await OTP.create(OTPPayload);
         console.log(OTPBody);
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "OTP Generated Successfully",
             otp,
