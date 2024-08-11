@@ -72,13 +72,13 @@ exports.signUp = async (req, res) =>{
             lastName,
             email,
             password,
-            confirmpassword,
+            confirmPassword,
             accountType,
             otp,
         } = req.body;
-
+        
         //Validate the data
-        if(!firstName || !lastName || !email || !password || !confirmpassword){
+        if(!firstName || !lastName || !email || !password || !confirmPassword){
             return res.status(403).json({
                 success: false,
                 message: "All field is Required",
@@ -94,7 +94,7 @@ exports.signUp = async (req, res) =>{
             })
         }
         //Check password is same or not
-        if(password !== confirmpassword){
+        if(password !== confirmPassword){
             return res.status(403).json({
                 success: false,
                 message: "Password and Confirm Password Should be the same",

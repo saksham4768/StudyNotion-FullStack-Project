@@ -5,6 +5,7 @@ const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
 const paymentRoutes = require("./routes/Payment");
 const courseRoutes = require("./routes/course");
+const ContactUsRoutes = require("./routes/contactUs");
 
 console.log(typeof userRoutes);  // Debug: should print "function"
 console.log(typeof profileRoutes);  // Debug: should print "function"
@@ -44,7 +45,7 @@ app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
-
+app.use("/api/v1/reach",ContactUsRoutes);
 
 //Default Routes
 // app.use("/" , (req, res) => {

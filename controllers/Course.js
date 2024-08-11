@@ -106,17 +106,19 @@ exports.getAllCourses = async (req, res) =>{
 
         const AllCourses = await course.find({},{
             courseName:true,
+            courseDescription:true,
             price:true,
             thumbNail:true,
             ratingAndReview:true,
             studentsEnrolled:true,
+            status:true,
             instructor:true
         }).populate("instructor").exec();
 
         return res.status(200).json({
             success: true,
             message:"All Courses fetch Successfully",
-            Coureses: AllCourses
+            Courses: AllCourses
         })
     }
     catch(err){
